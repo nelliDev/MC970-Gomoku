@@ -1,7 +1,7 @@
 #include "header.h"
 
 int main() {
-    vector<vector<int>> board(15, vector<int>(15, 0));
+    vector<vector<uint8_t>> board(15, vector<uint8_t>(15, 0));
     int currentPlayer = -1;
 
     while (true) {

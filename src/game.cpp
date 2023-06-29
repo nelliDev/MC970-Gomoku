@@ -8,7 +8,7 @@ void clearScreen() {
 #endif
 }
 
-void printGomokuBoard(const vector<vector<int>>& board) {
+void printGomokuBoard(const vector<vector<uint8_t>>& board) {
     clearScreen();
 
     // ANSI escape sequences for text colors
@@ -27,7 +27,7 @@ void printGomokuBoard(const vector<vector<int>>& board) {
     for (int i = 0; i < 15; i++) {
         cout << setw(2) << i << " ";
         for (int j = 0; j < 15; j++) {
-            if (board[i][j] == -1) {
+            if (board[i][j] == 2) {
                 cout << colorDark << "X " << colorReset;
             } else if (board[i][j] == 1) {
                 cout << colorLight << "O " << colorReset;
@@ -39,11 +39,11 @@ void printGomokuBoard(const vector<vector<int>>& board) {
     }
 }
 
-void playerMove(vector<vector<int>>& board, int player) {
+void playerMove(vector<vector<uint8_t>>& board, int player) {
     char column;
     int row;
 
-    cout << "Player " << (player == -1 ? "X" : "O") << "'s turn. Enter the column (A-O) and row (0-14) to make a move: ";
+    cout << "Player " << (player == 2 ? "X" : "O") << "'s turn. Enter the column (A-O) and row (0-14) to make a move: ";
     cin >> column >> row;
 
     int colIndex = column - 'A';

@@ -11,5 +11,5 @@
 using namespace std;
 
 void clearScreen();
-void printGomokuBoard(const vector<vector<int>>& board);
-void playerMove(vector<vector<int>>& board, int player);
+void printGomokuBoard(const vector<vector<uint8_t>>& board);
+void playerMove(vector<vector<uint8_t>>& board, int player);
