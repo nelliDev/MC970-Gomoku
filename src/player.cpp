@@ -12,8 +12,8 @@ int eval(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer) {
         int cnt = 0;
         for (auto & num : row)
         {
-            int val = num == currentPlayer ? 1 : -1;
-            sum += (val + cnt)*cx;
+            int val = num == currentPlayer ? 1 : 0;
+            sum += (cx + cnt)*val;
             cnt++;
         }
         cx++;
@@ -24,7 +24,7 @@ int eval(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer) {
 }
 
 
-vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int row, int col){
+vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int row, int col, Pos *removed){
     Pos newMove;
     newMove.row = row; newMove.col = col;
     vector<Pos> ret;
@@ -33,6 +33,8 @@ vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int r
     if (perim.count(newMove) != 0)
     {
         perim.erase(newMove);
+        removed->col = newMove.col;
+        removed->row = newMove.row;
     }
     for (i = max(row-RADIUS, 0); i <= min(row+RADIUS, 14); i++)
     {
@@ -55,21 +57,26 @@ vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int r
 }
 
 
-void removePerimiter(set<Pos>& perim, vector<Pos> added){
+void removePerimiter(set<Pos>& perim, vector<Pos> added, Pos removed){
     int i, j;
     for (auto & pos : added)
     {
         perim.erase(pos);
     }
+    perim.insert(removed);
     
 }
 
 
 
-vector<Pos> generateNextMoves(set<Pos> perim) {
-    vector<Pos> nextMoves (perim.begin(), perim.end());
+vector<Pos> generateNextMoves(set<Pos>& perim) {
+    vector<Pos> nextMoves;
+    for (const auto& move : perim) {
+        nextMoves.push_back(move);
+    }
     return nextMoves;
 }
+
 
 
 // Recursive function for minimax algorithm
@@ -88,6 +95,7 @@ int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board,
     // Generate all possible moves from the current state
     vector<Pos> nextMoves = generateNextMoves(perim);
     vector<Pos> addedMoves;
+    Pos removed;
     int tam = nextMoves.size();
     int i;
     
@@ -96,7 +104,7 @@ int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board,
         Pos nextMove = nextMoves[i];
         // Make the move
         board[nextMove.row][nextMove.col] = currentPlayer;
-        addedMoves = addPerimiter(board, perim, nextMove.row, nextMove.col);
+        addedMoves = addPerimiter(board, perim, nextMove.row, nextMove.col, &removed);
 
         // Call the minimax function recursively with the opposite player
         int value = minimax(depth - 1, !isMaximizingPlayer, board, currentPlayer^3, perim);
@@ -105,7 +113,7 @@ int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board,
 
         // Undo the move
         board[nextMove.row][nextMove.col] = 0;
-        removePerimiter(perim, addedMoves);
+        removePerimiter(perim, addedMoves, removed);
         
         // Update the bestValue based on the current player and value
         if (isMaximizingPlayer) {
@@ -125,10 +133,11 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
     vector<vector<u_int8_t>> copy = board;
     vector<Pos> addedMoves;
     Pos bestMove;
+    Pos removed;
 
     // Generate all possible moves from the current state
     vector<Pos> nextMoves = generateNextMoves(perim);
-    bestMove = nextMoves.back();
+    bestMove = nextMoves[0];
     int tam = nextMoves.size();
     int i;
     
@@ -138,13 +147,13 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
         Pos nextMove = nextMoves[i];
         // Make the move
         board[nextMove.row][nextMove.col] = currentPlayer;
-        addedMoves =  addPerimiter(board, perim, nextMove.row, nextMove.col);
+        addedMoves =  addPerimiter(board, perim, nextMove.row, nextMove.col, &removed);
         // Call the minimax function with the opposite player
         int value = minimax(depth, false, board, currentPlayer^3, perim);
 
         // Undo the move
         board[nextMove.row][nextMove.col] = copy[nextMove.row][nextMove.col];
-        removePerimiter(perim, addedMoves);
+        removePerimiter(perim, addedMoves, removed);
         
         // Update the bestValue and bestMove if a better move is found
         if (value > bestValue) {

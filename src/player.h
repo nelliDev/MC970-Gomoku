@@ -23,12 +23,12 @@ struct Pos {
     }
 };
 
-vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int row, int col);
+vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int row, int col, Pos *removed);
 
-void removePerimiter(set<Pos>& perim, vector<Pos> added);
+void removePerimiter(set<Pos>& perim, vector<Pos> added, Pos removed);
 
 // Function to evaluate the position of the game
-vector<Pos> generateNextMoves(set<Pos> perim);
+vector<Pos> generateNextMoves(set<Pos> &perim);
 
 // Recursive function for minimax algorithm
 int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, set<Pos>& perim);

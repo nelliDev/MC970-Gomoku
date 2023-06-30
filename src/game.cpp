@@ -44,6 +44,7 @@ void printGomokuBoard(const vector<vector<u_int8_t>>& board) {
 void playerMove(vector<vector<u_int8_t>>& board, int player, set<Pos>& perim) {
     char column;
     int row;
+    Pos nada;
 
     cout << "Player " << (player == -1 ? "X" : "O") << "'s turn. Enter the column (A-O) and row (0-14) to make a move: ";
     cin >> column >> row;
@@ -52,7 +53,7 @@ void playerMove(vector<vector<u_int8_t>>& board, int player, set<Pos>& perim) {
 
     if (row >= 0 && row < 15 && colIndex >= 0 && colIndex < 15 && board[row][colIndex] == 0) {
         board[row][colIndex] = player;
-        addPerimiter(board, perim, row, colIndex);
+        addPerimiter(board, perim, row, colIndex, &nada);
     } else {
         cout << "Invalid move. Try again." << endl;
         playerMove(board, player, perim);
@@ -60,9 +61,9 @@ void playerMove(vector<vector<u_int8_t>>& board, int player, set<Pos>& perim) {
 }
 
 void aiMove(vector<vector<u_int8_t>>& board, int player, int depth, set<Pos>& perim){
-
+    Pos nada;
     Pos best = getBestMove(board, player, depth, perim);
     board[best.row][best.col] = player;
-    addPerimiter(board, perim, best.row, best.col);
+    addPerimiter(board, perim, best.row, best.col, &nada);
 }
 
