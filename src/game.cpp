@@ -8,7 +8,7 @@ void clearScreen() {
 #endif
 }
 
-void printGomokuBoard(const vector<vector<int>>& board) {
+void printGomokuBoard(const vector<vector<u_int8_t>>& board) {
     clearScreen();
 
     // ANSI escape sequences for text colors
@@ -27,9 +27,9 @@ void printGomokuBoard(const vector<vector<int>>& board) {
     for (int i = 0; i < 15; i++) {
         cout << setw(2) << i << " ";
         for (int j = 0; j < 15; j++) {
-            if (board[i][j] == -1) {
+            if (board[i][j] == 1) {
                 cout << colorDark << "X " << colorReset;
-            } else if (board[i][j] == 1) {
+            } else if (board[i][j] == 2) {
                 cout << colorLight << "O " << colorReset;
             } else {
                 cout << ". ";
@@ -39,7 +39,9 @@ void printGomokuBoard(const vector<vector<int>>& board) {
     }
 }
 
-void playerMove(vector<vector<int>>& board, int player) {
+
+
+void playerMove(vector<vector<u_int8_t>>& board, int player, set<Pos>& perim) {
     char column;
     int row;
 
@@ -50,9 +52,17 @@ void playerMove(vector<vector<int>>& board, int player) {
 
     if (row >= 0 && row < 15 && colIndex >= 0 && colIndex < 15 && board[row][colIndex] == 0) {
         board[row][colIndex] = player;
+        addPerimiter(board, perim, row, colIndex);
     } else {
         cout << "Invalid move. Try again." << endl;
-        playerMove(board, player);
+        playerMove(board, player, perim);
     }
+}
+
+void aiMove(vector<vector<u_int8_t>>& board, int player, int depth, set<Pos>& perim){
+
+    Pos best = getBestMove(board, player, depth, perim);
+    board[best.row][best.col] = player;
+    addPerimiter(board, perim, best.row, best.col);
 }
 
