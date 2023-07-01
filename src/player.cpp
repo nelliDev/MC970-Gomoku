@@ -2,12 +2,18 @@
 
 unordered_map<string, int> ValueMap1 = {
     {"11111", 999999999},
-    {"011110", 32000},
-    {"11110", 4000},
+    {"011110", 32000}, 
     {"01111", 4000},
+    {"10111", 4000},
+    {"11011", 4000},
+    {"11101", 4000},
+    {"11110", 4000},
     {"01110", 1000},
+    {"011010", 1000},
     {"1110", 200},
     {"0111", 200},
+    {"01101", 200},
+    {"11010", 200},
     {"0110", 100},
     {"01010", 50},
     {"110", 20},
@@ -20,11 +26,17 @@ unordered_map<string, int> ValueMap1 = {
 unordered_map<string, int> ValueMap2 = {
     {"22222", 999999999},
     {"022220", 32000},
-    {"22220", 4000},
     {"02222", 4000},
+    {"20222", 4000},
+    {"22022", 4000},
+    {"22202", 4000},
+    {"22220", 4000},
     {"02220", 1000},
+    {"022020", 1000},
     {"2220", 200},
-    {"0222", 100},
+    {"0222", 200},
+    {"02202", 200},
+    {"22020", 200},
     {"0220", 100},
     {"02020", 50},
     {"220", 20},
@@ -176,7 +188,7 @@ vector<Pos> generateNextMoves(set<Pos>& perim) {
 int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, set<Pos>& perim) {
     // Check if the game has reached a terminal state or the desired depth
     // Return the evaluation value of the position if it is a terminal state or depth limit is reached
-    if (depth == 0 || eval(board, currentPlayer) == INT_MAX)
+    if (depth == 0 || eval(board, currentPlayer) == 999999999)
     {
         return eval(board, currentPlayer);
     }

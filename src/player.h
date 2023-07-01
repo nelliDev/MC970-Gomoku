@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <unistd.h>
 
-#define RADIUS 2
+#define RADIUS 1
 using namespace std;
 
 // Function to evaluate the position of the game

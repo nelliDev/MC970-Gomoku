@@ -21,7 +21,7 @@ int main() {
         }
         else
         {
-            aiMove(board, currentPlayer, 2, perimeter);
+            aiMove(board, currentPlayer, 1, perimeter);
         }
         
         
