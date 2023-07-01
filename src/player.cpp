@@ -1,28 +1,121 @@
 #include "player.h"
 
+unordered_map<string, int> ValueMap1 = {
+    {"11111", 999999999},
+    {"011110", 32000},
+    {"11110", 4000},
+    {"01111", 4000},
+    {"01110", 1000},
+    {"1110", 200},
+    {"0111", 200},
+    {"0110", 100},
+    {"01010", 50},
+    {"110", 20},
+    {"011", 20},
+    {"1010", 10},
+    {"0101", 10},
+    {"010", 5}
+};
+
+unordered_map<string, int> ValueMap2 = {
+    {"22222", 999999999},
+    {"022220", 32000},
+    {"22220", 4000},
+    {"02222", 4000},
+    {"02220", 1000},
+    {"2220", 200},
+    {"0222", 100},
+    {"0220", 100},
+    {"02020", 50},
+    {"220", 20},
+    {"022", 20},
+    {"2020", 10},
+    {"0202", 10},
+    {"020", 5}
+};
+
 // Function to evaluate the position of the game
 int eval(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer) {
     // Implement your evaluation function here
     // This function should assign a value to the current game state
     // Higher values indicate better positions for the current player
     // Lower values indicate better positions for the opponent player
-    int cx = 0;
-    int sum = 0;
-    for (auto & row : board){
-        int cnt = 0;
-        for (auto & num : row)
-        {
-            int val = num == currentPlayer ? 1 : 0;
-            sum += (cx + cnt)*val;
-            cnt++;
-        }
-        cx++;
-        
+    vector<vector<uint8_t>> primaryDiagonals(21, vector<uint8_t>());
+    vector<vector<uint8_t>> secondaryDiagonals(21, vector<uint8_t>());
+    vector<vector<uint8_t>> rotated(15, vector<uint8_t>(15));
 
+    for (int i = 0; i < 15; i++) {
+        for (int j = 0; j < 15; j++) {
+            //Creating a rotated board
+            rotated[j][i] = board[i][j];
+            // Extracting primary diagonals, the ones with more than 4 elements.
+            if ((i+j) > 3 && (i+j) < 25)
+            primaryDiagonals[i + j-4].push_back(board[i][j]);
+            // Extracting secondary diagonals, the ones with more than 4 elements.
+            if ((i + (14 - j)) > 3 && (i + (14 - j)) < 25)
+            secondaryDiagonals[i + (14 - j)-4].push_back(board[i][j]);
+        }
     }
-    return sum;
+
+    // Converting the vectors to strings for regex matching
+    vector<string> primaryDiagonalsStrings = matrixToListOfStrings(primaryDiagonals);
+    vector<string> secondaryDiagonalsStrings = matrixToListOfStrings(secondaryDiagonals);
+    vector<string> rotatedStrings = matrixToListOfStrings(rotated);
+    vector<string> boardStrings = matrixToListOfStrings(board);
+
+    int onesScore = 0;
+    for (const auto& entry : ValueMap1) {
+        const std::string& pattern = entry.first;
+        int value = entry.second;
+        
+        onesScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
+        onesScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
+        onesScore += MatchesInStrings(rotatedStrings, pattern) * value;
+        onesScore += MatchesInStrings(boardStrings, pattern) * value;
+    }
+    int twosScore = 0;
+    for (const auto& entry : ValueMap2) {
+        const std::string& pattern = entry.first;
+        int value = entry.second;
+        
+        twosScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
+        twosScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
+        twosScore += MatchesInStrings(rotatedStrings, pattern) * value;
+        twosScore += MatchesInStrings(boardStrings, pattern) * value;
+    }
+    if (currentPlayer == 1){
+        return onesScore - twosScore;
+    }
+    else{
+        return twosScore - onesScore;
+    }
 }
 
+vector<string> matrixToListOfStrings(const vector<vector<uint8_t>>& matrix){
+    vector<string> listOfStrings;
+    for (const auto& row : matrix) {
+        string rowString;
+        for (const auto& element : row) {
+            rowString += to_string(element);
+        }
+        listOfStrings.push_back(rowString);
+    }
+    return listOfStrings;
+}
+
+// Function to count the number of matches for a regex pattern in a list of strings
+int MatchesInStrings(const vector<string>& strings, const string& pattern) {
+    regex regexPattern(pattern);
+    int matchCount = 0;
+    
+    for (const string& str : strings) {
+        if (regex_search(str, regexPattern)) {
+            matchCount++;
+        }
+    }
+    
+    return matchCount;
+}
 
 vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int row, int col, Pos *removed){
     Pos newMove;

@@ -4,6 +4,9 @@
 #include <limits.h>
 #include <algorithm>
 #include <set>
+#include <regex>
+#include <unordered_map>
+#include <unistd.h>
 
 #define RADIUS 2
 using namespace std;
@@ -36,3 +39,8 @@ int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board,
 // Function to initiate the minimax algorithm and get the best move
 Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int depth, set<Pos>& perim);
 
+// Auxiliary function to convert a matrix to a list of strings
+vector<string> matrixToListOfStrings(const vector<vector<uint8_t>>& matrix);
+
+// Function to count the number of matches for a regex pattern in a list of strings
+int MatchesInStrings(const vector<string>& strings, const string& pattern);
