@@ -7,6 +7,8 @@ executables=(
     "../build/parallel_minimax"
     "../build/parallel_regex"
     "../build/parallel_scores"
+    "../build/parallel_hashing"
+    "../build/serial_hashing"
     "../build/serial"
 )
 
