@@ -8,6 +8,66 @@ void clearScreen() {
 #endif
 }
 
+bool checkWin(const vector<vector<u_int8_t>>& board, int player, int row, int col) {
+    // Check horizontal
+    int count = 0;
+    for (int i = col - 4; i <= col + 4; i++) {
+        if (i >= 0 && i < 15 && board[row][i] == player) {
+            count++;
+            if (count >= 5) {
+                return true;
+            }
+        } else {
+            count = 0;
+        }
+    }
+
+    // Check vertical
+    count = 0;
+    for (int i = row - 4; i <= row + 4; i++) {
+        if (i >= 0 && i < 15 && board[i][col] == player) {
+            count++;
+            if (count >= 5) {
+                return true;
+            }
+        } else {
+            count = 0;
+        }
+    }
+
+    // Check diagonal (top-left to bottom-right)
+    count = 0;
+    for (int i = -4; i <= 4; i++) {
+        int r = row + i;
+        int c = col + i;
+        if (r >= 0 && r < 15 && c >= 0 && c < 15 && board[r][c] == player) {
+            count++;
+            if (count >= 5) {
+                return true;
+            }
+        } else {
+            count = 0;
+        }
+    }
+
+    // Check diagonal (top-right to bottom-left)
+    count = 0;
+    for (int i = -4; i <= 4; i++) {
+        int r = row - i;
+        int c = col + i;
+        if (r >= 0 && r < 15 && c >= 0 && c < 15 && board[r][c] == player) {
+            count++;
+            if (count >= 5) {
+                return true;
+            }
+        } else {
+            count = 0;
+        }
+    }
+
+    return false;
+}
+
 void printGomokuBoard(const vector<vector<u_int8_t>>& board) {
     clearScreen();
 
@@ -53,6 +113,11 @@ void playerMove(vector<vector<u_int8_t>>& board, int player, set<Pos>& perim) {
 
     if (row >= 0 && row < 15 && colIndex >= 0 && colIndex < 15 && board[row][colIndex] == 0) {
         board[row][colIndex] = player;
+        if (checkWin(board, player, row, colIndex)) {
+        printGomokuBoard(board);
+        cout << "Player " << (player == -1 ? "X" : "O") << " wins! Congratulations!" << endl;
+        exit(0);
+    }
         addPerimiter(board, perim, row, colIndex, &nada);
     } else {
         cout << "Invalid move. Try again." << endl;
@@ -64,6 +129,11 @@ void aiMove(vector<vector<u_int8_t>>& board, int player, int depth, set<Pos>& pe
     Pos nada;
     Pos best = getBestMove(board, player, depth, perim);
     board[best.row][best.col] = player;
+    if (checkWin(board, player, best.row, best.col)) {
+        printGomokuBoard(board);
+        cout << "Player " << (player == -1 ? "X" : "O") << " wins! Congratulations!" << endl;
+        exit(0);
+    }
     addPerimiter(board, perim, best.row, best.col, &nada);
 }
 

@@ -157,9 +157,11 @@ int MatchesInStrings(const vector<string>& strings, const string& pattern) {
 }
 
 vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int row, int col, Pos *removed){
+    vector<Pos> ret;
+    #pragma omp critical
+    {
     Pos newMove;
     newMove.row = row; newMove.col = col;
-    vector<Pos> ret;
     int i, j;
 
     if (perim.count(newMove) != 0)
@@ -184,21 +186,23 @@ vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int r
         }
     }
 
+    }
 
     return ret;
+    
 }
 
 
 void removePerimiter(set<Pos>& perim, vector<Pos> added, Pos removed){
-    int i, j;
+    #pragma omp critical
+    {
     for (auto & pos : added)
     {
         perim.erase(pos);
     }
     perim.insert(removed);
-    
+    }
 }
-
 
 
 vector<Pos> generateNextMoves(set<Pos>& perim) {
