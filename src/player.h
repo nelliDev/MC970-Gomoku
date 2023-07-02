@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <unistd.h>
 #include <omp.h>
+#include <functional>
+#include <array>
 
 #define RADIUS 1
 using namespace std;

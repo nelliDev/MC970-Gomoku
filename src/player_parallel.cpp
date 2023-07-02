@@ -1,31 +1,40 @@
 #include "player.h"
 
-// Map of patterns and their corresponding values
-unordered_map<string, int> ValueMap1 = {
-    {"11111", 999999999},
-    {"011110", 32000}, 
-    {"01111", 4000},
-    {"10111", 4000},
-    {"11011", 4000},
-    {"11101", 4000},
-    {"11110", 4000},
-    {"01110", 1000},
-    {"011010", 1000},
-    {"1110", 200},
-    {"0111", 200},
-    {"01101", 200},
-    {"11010", 200},
-    {"0110", 100},
-    {"01010", 50},
-    {"110", 20},
-    {"011", 20},
-    {"1010", 10},
-    {"0101", 10},
-    {"010", 5}
+// Define the maximum number of patterns
+const int MaxPatterns = 20;
+
+// Define a struct to store the pattern-value pairs
+struct PatternValuePair {
+    const char* pattern;
+    int value;
 };
 
-unordered_map<string, int> ValueMap2 = {
-    {"22222", 999999999},
+// Define the pattern-value pairs for ValueMap1
+const array<PatternValuePair, MaxPatterns> ValueMap1 = {
+    {{"11111", 999999999},
+     {"011110", 32000},
+     {"01111", 4000},
+     {"10111", 4000},
+     {"11011", 4000},
+     {"11101", 4000},
+     {"11110", 4000},
+     {"01110", 1000},
+     {"011010", 1000},
+     {"1110", 200},
+     {"0111", 200},
+     {"01101", 200},
+     {"11010", 200},
+     {"0110", 100},
+     {"01010", 50},
+     {"110", 20},
+     {"011", 20},
+     {"1010", 10},
+     {"0101", 10},
+     {"010", 5}}
+};
+
+const array<PatternValuePair, MaxPatterns> ValueMap2 = {
+    {{"22222", 999999999},
     {"022220", 32000},
     {"02222", 4000},
     {"20222", 4000},
@@ -44,7 +53,7 @@ unordered_map<string, int> ValueMap2 = {
     {"022", 20},
     {"2020", 10},
     {"0202", 10},
-    {"020", 5}
+    {"020", 5}}
 };
 
 // Function to evaluate the position of the game
@@ -77,25 +86,42 @@ int eval(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer) {
     vector<string> boardStrings = matrixToListOfStrings(board);
 
     int onesScore = 0;
-    // Count the number of matches for each pattern in each direction
-    for (const auto& entry : ValueMap1) {
-        const std::string& pattern = entry.first;
-        int value = entry.second;
-        onesScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
-        onesScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
-        onesScore += MatchesInStrings(rotatedStrings, pattern) * value;
-        onesScore += MatchesInStrings(boardStrings, pattern) * value;
-    }
     int twosScore = 0;
-    for (const auto& entry : ValueMap2) {
-        const std::string& pattern = entry.first;
-        int value = entry.second;
-        
-        twosScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
-        twosScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
-        twosScore += MatchesInStrings(rotatedStrings, pattern) * value;
-        twosScore += MatchesInStrings(boardStrings, pattern) * value;
+    #pragma omp parallel
+    {
+        #pragma omp sections
+        {
+            #pragma omp section
+            {
+                #pragma omp parallel for reduction(+:onesScore)
+                for (int i = 0; i < ValueMap1.size(); i++) {
+                    const auto& entry = ValueMap1[i];
+                    const string& pattern = entry.pattern;
+                    int value = entry.value;
+                    onesScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
+                    onesScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
+                    onesScore += MatchesInStrings(rotatedStrings, pattern) * value;
+                    onesScore += MatchesInStrings(boardStrings, pattern) * value;
+                }
+            }
+
+            #pragma omp section
+            {
+                #pragma omp parallel for reduction(+:onesScore)
+                for (int i = 0; i < ValueMap2.size(); i++) {
+                    const auto& entry = ValueMap2[i];
+                    const string& pattern = entry.pattern;
+                    int value = entry.value;
+                    twosScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
+                    twosScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
+                    twosScore += MatchesInStrings(rotatedStrings, pattern) * value;
+                    twosScore += MatchesInStrings(boardStrings, pattern) * value;
+                }
+            }
+        }
     }
+
+
     if (currentPlayer == 1){
         return onesScore - twosScore;
     }
@@ -275,4 +301,18 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
 
     // Return the best move
     return bestMove;
+}
+
+size_t hashBoard(vector<vector<u_int8_t>>& board) {
+    // Combine the hash of each element in the board
+    hash<u_int8_t> hasher;
+    size_t seed = board.size();
+    
+    for (const auto& row : board) {
+        for (const auto& element : row) {
+            seed ^= hasher(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+    }
+    
+    return seed;
 }
