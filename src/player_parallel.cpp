@@ -206,7 +206,6 @@ int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board,
     int i;
     
     // Loop through each possible move
-    #pragma omp parallel for shared(bestValue) private(i) schedule(dynamic)
     for (i = 0; i < tam; i++) {
         Pos nextMove = nextMoves[i];
         // Make the move
@@ -223,14 +222,12 @@ int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board,
         removePerimiter(perim, addedMoves, removed);
         
         // Update the bestValue based on the current player and value
-        #pragma omp critical
-        {
-            if (isMaximizingPlayer) {
-                bestValue = max(bestValue, value);
-            } else {
-                bestValue = min(bestValue, value);
-            }
+        if (isMaximizingPlayer) {
+            bestValue = max(bestValue, value);
+        } else {
+            bestValue = min(bestValue, value);
         }
+        
     }
 
     // Return the best value
@@ -253,6 +250,7 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
     
     // Loop through each possible move
     //Parallelize this loop
+    #pragma omp parallel for shared(bestValue) private(i) schedule(dynamic)
     for (i = 0; i < tam; i++) {
         Pos nextMove = nextMoves[i];
         // Make the move
@@ -266,9 +264,12 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
         removePerimiter(perim, addedMoves, removed);
         
         // Update the bestValue and bestMove if a better move is found
-        if (value > bestValue) {
-            bestValue = value;
-            bestMove = nextMove;
+        #pragma omp critical
+        {
+            if (value > bestValue) {
+                bestValue = value;
+                bestMove = nextMove;
+            }
         }
     }
 

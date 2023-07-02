@@ -10,3 +10,5 @@ set_source_files_properties(src/game.cpp src/main.cpp src/player.cpp src/player_
 
 add_executable(main src/game.cpp src/main.cpp src/player.cpp)
 add_executable(main_parallel src/game.cpp src/main.cpp src/player_parallel.cpp)
+add_executable(timming_parallel src/game.cpp src/timming.cpp src/player_parallel.cpp)
+add_executable(timming src/game.cpp src/timming.cpp src/player.cpp)
