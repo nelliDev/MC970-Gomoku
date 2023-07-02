@@ -107,7 +107,7 @@ int eval(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer) {
 
             #pragma omp section
             {
-                #pragma omp parallel for reduction(+:onesScore)
+                #pragma omp parallel for reduction(+:twosScore)
                 for (int i = 0; i < ValueMap2.size(); i++) {
                     const auto& entry = ValueMap2[i];
                     const string& pattern = entry.pattern;
@@ -274,21 +274,24 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
     int tam = nextMoves.size();
     int i;
     
-    // Loop through each possible move
-    //Parallelize this loop
-    #pragma omp parallel for shared(bestValue) private(i) schedule(dynamic)
-    for (i = 0; i < tam; i++) {
+    // Loop through each possible move in parallel
+    #pragma omp parallel for
+    for (int i = 0; i < tam; i++) {
         Pos nextMove = nextMoves[i];
+        // Make a copy of the board and perim for each thread
+        vector<vector<u_int8_t>> localBoard = board;
+        set<Pos> localPerim = perim;
+
         // Make the move
-        board[nextMove.row][nextMove.col] = currentPlayer;
-        addedMoves =  addPerimiter(board, perim, nextMove.row, nextMove.col, &removed);
+        localBoard[nextMove.row][nextMove.col] = currentPlayer;
+        addedMoves =  addPerimiter(localBoard, localPerim, nextMove.row, nextMove.col, &removed);
         // Call the minimax function with the opposite player
-        int value = minimax(depth, false, board, currentPlayer^3, perim);
+        int value = minimax(depth, false, localBoard, currentPlayer^3, localPerim);
 
         // Undo the move
-        board[nextMove.row][nextMove.col] = copy[nextMove.row][nextMove.col];
-        removePerimiter(perim, addedMoves, removed);
-        
+        localBoard[nextMove.row][nextMove.col] = copy[nextMove.row][nextMove.col];
+        removePerimiter(localPerim, addedMoves, removed);
+
         // Update the bestValue and bestMove if a better move is found
         #pragma omp critical
         {
@@ -302,6 +305,7 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
     // Return the best move
     return bestMove;
 }
+
 
 size_t hashBoard(vector<vector<u_int8_t>>& board) {
     // Combine the hash of each element in the board
