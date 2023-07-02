@@ -7,6 +7,7 @@
 #include <regex>
 #include <unordered_map>
 #include <unistd.h>
+#include <omp.h>
 
 #define RADIUS 1
 using namespace std;

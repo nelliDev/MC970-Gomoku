@@ -6,6 +6,7 @@ find_package(OpenMP REQUIRED)
 
 set(CMAKE_C_STANDARD 99)
 
-set_source_files_properties(src/game.cpp src/main.cpp src/player.cpp PROPERTIES COMPILE_OPTIONS "-g")
+set_source_files_properties(src/game.cpp src/main.cpp src/player.cpp src/player_parallel.cpp PROPERTIES COMPILE_OPTIONS "-g")
 
 add_executable(main src/game.cpp src/main.cpp src/player.cpp)
+add_executable(main_parallel src/game.cpp src/main.cpp src/player_parallel.cpp)
