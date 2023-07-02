@@ -1,50 +1,59 @@
-#include "player.h"
+#include "../player.h"
 
-// Map of patterns and their corresponding values
-unordered_map<string, int> ValueMap1 = {
-    {"11111", 999999999},
-    {"011110", 32000}, 
-    {"01111", 4000},
-    {"10111", 4000},
-    {"11011", 4000},
-    {"11101", 4000},
-    {"11110", 4000},
-    {"01110", 1000},
-    {"011010", 1000},
-    {"1110", 200},
-    {"0111", 200},
-    {"01101", 200},
-    {"11010", 200},
-    {"0110", 100},
-    {"01010", 50},
-    {"110", 20},
-    {"011", 20},
-    {"1010", 10},
-    {"0101", 10},
-    {"010", 5}
+// Define the maximum number of patterns
+const int MaxPatterns = 20;
+
+// Define a struct to store the pattern-value pairs
+struct PatternValuePair {
+    const char* pattern;
+    int value;
 };
 
-unordered_map<string, int> ValueMap2 = {
-    {"22222", 999999999},
+// Define the pattern-value pairs for ValueMap1
+const array<PatternValuePair, MaxPatterns> ValueMap1 = {
+    {{"11111", 999999999},
+     {"011110", 32000},
+     {"01111", 4500},
+     {"10111", 4000},
+     {"11011", 4000},
+     {"11101", 4000},
+     {"11110", 4500},
+     {"01110", 1000},
+     {"011010", 1000},
+     {"1110", 200},
+     {"0111", 200},
+     {"01101", 200},
+     {"11010", 200},
+     {"0110", 150},
+     {"01010", 50},
+     {"110", 20},
+     {"011", 20},
+     {"1010", 10},
+     {"0101", 10},
+     {"010", 5}}
+};
+
+const array<PatternValuePair, MaxPatterns> ValueMap2 = {
+    {{"22222", 999999999},
     {"022220", 32000},
-    {"02222", 4000},
+    {"02222", 4500},
     {"20222", 4000},
     {"22022", 4000},
     {"22202", 4000},
-    {"22220", 4000},
+    {"22220", 4500},
     {"02220", 1000},
     {"022020", 1000},
     {"2220", 200},
     {"0222", 200},
     {"02202", 200},
     {"22020", 200},
-    {"0220", 100},
+    {"0220", 150},
     {"02020", 50},
     {"220", 20},
     {"022", 20},
     {"2020", 10},
     {"0202", 10},
-    {"020", 5}
+    {"020", 5}}
 };
 
 // Function to evaluate the position of the game
@@ -77,25 +86,42 @@ int eval(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer) {
     vector<string> boardStrings = matrixToListOfStrings(board);
 
     int onesScore = 0;
-    // Count the number of matches for each pattern in each direction
-    for (const auto& entry : ValueMap1) {
-        const std::string& pattern = entry.first;
-        int value = entry.second;
-        onesScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
-        onesScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
-        onesScore += MatchesInStrings(rotatedStrings, pattern) * value;
-        onesScore += MatchesInStrings(boardStrings, pattern) * value;
-    }
     int twosScore = 0;
-    for (const auto& entry : ValueMap2) {
-        const std::string& pattern = entry.first;
-        int value = entry.second;
-        
-        twosScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
-        twosScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
-        twosScore += MatchesInStrings(rotatedStrings, pattern) * value;
-        twosScore += MatchesInStrings(boardStrings, pattern) * value;
+    #pragma omp parallel
+    {
+        #pragma omp sections
+        {
+            #pragma omp section
+            {
+                #pragma omp parallel for reduction(+:onesScore)
+                for (int i = 0; i < ValueMap1.size(); i++) {
+                    const auto& entry = ValueMap1[i];
+                    const string& pattern = entry.pattern;
+                    int value = entry.value;
+                    onesScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
+                    onesScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
+                    onesScore += MatchesInStrings(rotatedStrings, pattern) * value;
+                    onesScore += MatchesInStrings(boardStrings, pattern) * value;
+                }
+            }
+
+            #pragma omp section
+            {
+                #pragma omp parallel for reduction(+:twosScore)
+                for (int i = 0; i < ValueMap2.size(); i++) {
+                    const auto& entry = ValueMap2[i];
+                    const string& pattern = entry.pattern;
+                    int value = entry.value;
+                    twosScore += MatchesInStrings(primaryDiagonalsStrings, pattern) * value;
+                    twosScore += MatchesInStrings(secondaryDiagonalsStrings, pattern) * value;
+                    twosScore += MatchesInStrings(rotatedStrings, pattern) * value;
+                    twosScore += MatchesInStrings(boardStrings, pattern) * value;
+                }
+            }
+        }
     }
+
+
     if (currentPlayer == 1){
         return onesScore - twosScore;
     }
@@ -131,9 +157,11 @@ int MatchesInStrings(const vector<string>& strings, const string& pattern) {
 }
 
 vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int row, int col, Pos *removed){
+    vector<Pos> ret;
+    #pragma omp critical
+    {
     Pos newMove;
     newMove.row = row; newMove.col = col;
-    vector<Pos> ret;
     int i, j;
 
     if (perim.count(newMove) != 0)
@@ -158,21 +186,23 @@ vector<Pos> addPerimiter(vector<vector<u_int8_t>>& board, set<Pos>& perim, int r
         }
     }
 
+    }
 
     return ret;
+    
 }
 
 
 void removePerimiter(set<Pos>& perim, vector<Pos> added, Pos removed){
-    int i, j;
+    #pragma omp critical
+    {
     for (auto & pos : added)
     {
         perim.erase(pos);
     }
     perim.insert(removed);
-    
+    }
 }
-
 
 
 vector<Pos> generateNextMoves(set<Pos>& perim) {
@@ -227,6 +257,7 @@ int minimax(int depth, bool isMaximizingPlayer, vector<vector<u_int8_t>>& board,
         } else {
             bestValue = min(bestValue, value);
         }
+        
     }
 
     // Return the best value
@@ -247,24 +278,31 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
     int tam = nextMoves.size();
     int i;
     
-    // Loop through each possible move
-    //Parallelize this loop
-    for (i = 0; i < tam; i++) {
+    // Loop through each possible move in parallel
+    #pragma omp parallel for
+    for (int i = 0; i < tam; i++) {
         Pos nextMove = nextMoves[i];
+        // Make a copy of the board and perim for each thread
+        vector<vector<u_int8_t>> localBoard = board;
+        set<Pos> localPerim = perim;
+
         // Make the move
-        board[nextMove.row][nextMove.col] = currentPlayer;
-        addedMoves =  addPerimiter(board, perim, nextMove.row, nextMove.col, &removed);
+        localBoard[nextMove.row][nextMove.col] = currentPlayer;
+        addedMoves =  addPerimiter(localBoard, localPerim, nextMove.row, nextMove.col, &removed);
         // Call the minimax function with the opposite player
-        int value = minimax(depth, false, board, currentPlayer^3, perim);
+        int value = minimax(depth, false, localBoard, currentPlayer^3, localPerim);
 
         // Undo the move
-        board[nextMove.row][nextMove.col] = copy[nextMove.row][nextMove.col];
-        removePerimiter(perim, addedMoves, removed);
-        
+        localBoard[nextMove.row][nextMove.col] = copy[nextMove.row][nextMove.col];
+        removePerimiter(localPerim, addedMoves, removed);
+
         // Update the bestValue and bestMove if a better move is found
-        if (value > bestValue) {
-            bestValue = value;
-            bestMove = nextMove;
+        #pragma omp critical
+        {
+            if (value > bestValue) {
+                bestValue = value;
+                bestMove = nextMove;
+            }
         }
     }
 

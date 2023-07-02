@@ -1,4 +1,4 @@
-#include "player.h"
+#include "../player.h"
 
 // Define the maximum number of patterns
 const int MaxPatterns = 20;
@@ -13,11 +13,11 @@ struct PatternValuePair {
 const array<PatternValuePair, MaxPatterns> ValueMap1 = {
     {{"11111", 999999999},
      {"011110", 32000},
-     {"01111", 4000},
+     {"01111", 4500},
      {"10111", 4000},
      {"11011", 4000},
      {"11101", 4000},
-     {"11110", 4000},
+     {"11110", 4500},
      {"01110", 1000},
      {"011010", 1000},
      {"1110", 200},
@@ -36,11 +36,11 @@ const array<PatternValuePair, MaxPatterns> ValueMap1 = {
 const array<PatternValuePair, MaxPatterns> ValueMap2 = {
     {{"22222", 999999999},
     {"022220", 32000},
-    {"02222", 4000},
+    {"02222", 4500},
     {"20222", 4000},
     {"22022", 4000},
     {"22202", 4000},
-    {"22220", 4000},
+    {"22220", 4500},
     {"02220", 1000},
     {"022020", 1000},
     {"2220", 200},
@@ -279,7 +279,6 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
     int i;
     
     // Loop through each possible move in parallel
-    #pragma omp parallel for
     for (int i = 0; i < tam; i++) {
         Pos nextMove = nextMoves[i];
         // Make a copy of the board and perim for each thread
@@ -297,30 +296,12 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
         removePerimiter(localPerim, addedMoves, removed);
 
         // Update the bestValue and bestMove if a better move is found
-        #pragma omp critical
-        {
-            if (value > bestValue) {
-                bestValue = value;
-                bestMove = nextMove;
-            }
+        if (value > bestValue) {
+            bestValue = value;
+            bestMove = nextMove;
         }
     }
 
     // Return the best move
     return bestMove;
-}
-
-
-size_t hashBoard(vector<vector<u_int8_t>>& board) {
-    // Combine the hash of each element in the board
-    hash<u_int8_t> hasher;
-    size_t seed = board.size();
-    
-    for (const auto& row : board) {
-        for (const auto& element : row) {
-            seed ^= hasher(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-    }
-    
-    return seed;
 }
