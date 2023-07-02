@@ -33,22 +33,3 @@ uint64_t calculateHash(const vector<vector<uint8_t>>& board) {
     }
     return hash;
 }
-
-
-// int main() {
-//     vector<vector<uint8_t>> board(BOARD_SIZE, vector<uint8_t>(BOARD_SIZE, 0));
-
-//     // Initialize the Zobrist table
-//     initializeZobristTable();
-
-//     // Make some changes to the board
-//     board[5][5] = 1; // Place a light piece at (5, 5)
-//     board[10][10] = 2; // Place a dark piece at (10, 10)
-
-//     // Calculate the hash for the current game state
-//     uint64_t hash = calculateHash(board);
-
-//     cout << "Hash value: " << hash << endl;
-
-//     return 0;
-// }

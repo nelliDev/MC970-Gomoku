@@ -293,18 +293,3 @@ Pos getBestMove(vector<vector<u_int8_t>>& board, u_int8_t currentPlayer, int dep
     // Return the best move
     return bestMove;
 }
-
-
-size_t hashBoard(vector<vector<u_int8_t>>& board) {
-    // Combine the hash of each element in the board
-    hash<u_int8_t> hasher;
-    size_t seed = board.size();
-    
-    for (const auto& row : board) {
-        for (const auto& element : row) {
-            seed ^= hasher(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-    }
-    
-    return seed;
-}

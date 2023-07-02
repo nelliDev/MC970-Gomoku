@@ -10,7 +10,7 @@ int main() {
     
     board [7][7] = 1;
     addPerimiter(board, perimeter, 7, 7, &nada);
-    for (int i = 0; i < 3; i++){
+    for (int i = 0; i < 7; i++){
         printGomokuBoard(board);
         aiMove(board, currentPlayer, 1, perimeter);
         currentPlayer ^= 3;
